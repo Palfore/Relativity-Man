@@ -10,7 +10,7 @@ class Player:
         self.onGround = False
 
         self.bounciness = 0.4
-        self.walking_speed = 200
+        self.walking_speed = 400
         self.jumping_speed = 7
         self.mass = 1
 
@@ -48,7 +48,6 @@ class Player:
                         self.onGround = True
         else:
             self.onGround = False
-
 
     def draw(self, screen):
         image = pygame.transform.scale(self.image, (self.height, self.width))
