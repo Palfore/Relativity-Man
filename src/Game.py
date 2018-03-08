@@ -4,6 +4,7 @@ from src.Platform import Platform
 from src.Clock import Clock
 import copy
 
+
 class Key:
     def __init__(self, py_key, state=False):
         self.py_key = py_key
@@ -24,11 +25,11 @@ class Game:
         self.screen = pygame.display.set_mode((self.WINDOW_WIDTH, self.WINDOW_HEIGHT))
 
         self.player = Player(150, Game.GROUND - 300)
-        self.platforms = (Platform(self.GROUND - 100, 100, 1600, 10),
-                          Platform(self.GROUND - 200, 200, 200, 10),
-                          Platform(self.GROUND - 500, 500, 200, 10),
-                          Platform(self.GROUND - 400, 300, 200, 10),
-                          Platform(self.GROUND - 300, 700, 200, 10),
+        self.platforms = (Platform(self.GROUND - 100, 100, 1600, 20),
+                          Platform(self.GROUND - 200, 200, 200, 20),
+                          Platform(self.GROUND - 500, 500, 200, 20),
+                          Platform(self.GROUND - 400, 300, 200, 20),
+                          Platform(self.GROUND - 300, 700, 200, 20),
                           )
         self.clock_rel = Clock(50, 50, 200, 100, self.SPEED_OF_LIGHT)
         self.clock = Clock(150, 50, 200, 100, self.SPEED_OF_LIGHT)
@@ -61,11 +62,13 @@ class Game:
             clock.tick(60)
             for frames in range(300):
                 self.update_key_states()
+                self.handle_user_input()
+
                 self.player.update(self.DT)
                 self.player.handle_collisions(self.platforms)
                 self.clock.update(self.DT, 0, 0, self.SPEED_OF_LIGHT)
                 self.clock_rel.update(self.DT, self.player.vx, self.player.vy, self.SPEED_OF_LIGHT)
-                self.handle_user_input()
+
                 if self.player.is_dead(self.GROUND):
                     self.player = Player(150, Game.GROUND - 300)
 
@@ -94,7 +97,8 @@ class Game:
                 self.player.vx = +self.player.walking_speed * self.DT
             if self.keys['space'].state:
                 if self.player.onGround:
-                    self.player.vy = -self.player.jumping_speed
+                    # self.player.vy = -self.player.jumping_speed
+                    self.player.ay = 800 / self.player.mass
                     self.keys['space'].state = False
             if self.keys['escape'].state:
                 pygame.quit()

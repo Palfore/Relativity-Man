@@ -1,17 +1,20 @@
 import pygame
 import src.settings as settings
+from math import sqrt
 
 
 class Player:
     def __init__(self, init_x, init_y):
         self.image = pygame.image.load("../assets/einstein.png")
-        self.height = 75
-        self.width = 75
+        self.proper_height = 150
+        self.proper_width = 150
+        self.height = self.proper_height
+        self.width = self.proper_width
         self.onGround = False
 
         self.bounciness = 0.4
-        self.walking_speed = 400
-        self.jumping_speed = 7
+        self.walking_speed = 699
+        self.jumping_speed = 7.99
         self.mass = 1
 
         self.x = init_x
@@ -29,10 +32,17 @@ class Player:
         self.y += self.vy * dt
 
         self.ax = 0
-        self.ay = 0.05
-        drag = 0.01 if self.onGround else 0.05
+        self.ay = 0.002  # gravity
+
+        drag = 0.02 if self.onGround else 0.05
         self.vx *= (1 - drag * dt)
         self.vy *= (1 - 0.01 * dt)
+
+        gamma_x = 1.0 / sqrt(1 - self.vx**2 / 8**2)
+        gamma_y = 1.0 / sqrt(1 - self.vy**2 / 8**2)
+
+        self.height = self.proper_height / gamma_y
+        self.width = self.proper_width / gamma_x
 
     def is_dead(self, ground_level):
         return self.get_top() >= ground_level
@@ -40,7 +50,7 @@ class Player:
     def handle_collisions(self, platforms):
         if not self.onGround and self.vy > 0:
             for p in platforms:
-                if p.top + 2 >= self.get_bottom() >= p.top:
+                if p.top + 4 >= self.get_bottom() >= p.top:
                     if p.get_right() >= self.get_left() and \
                                     p.get_left() <= self.get_right():  # >= p.left:
                         self.vy *= -self.bounciness
@@ -50,7 +60,9 @@ class Player:
             self.onGround = False
 
     def draw(self, screen):
-        image = pygame.transform.scale(self.image, (self.height, self.width))
+        image = pygame.transform.scale(self.image, (
+            int(self.width), int(self.height)
+        ))
         screen.blit(image, (self.get_left(), self.get_top()))
 
         if settings.is_debugging():
