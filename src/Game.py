@@ -1,9 +1,10 @@
 import pygame
 from src.Player import Player
 from src.Platform import Platform
-from src.Clock import Clock
+from src.Clock import Clock, Ball
+from src.settings import using_joy_stick
 import copy
-
+from math import atan2, cos, sin, sqrt
 
 class Key:
     def __init__(self, py_key, state=False):
@@ -11,68 +12,146 @@ class Key:
         self.state = state
 
 
+class Nobel_Prize:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.height = 100
+        self.width = 100
+        self.image = pygame.transform.scale(pygame.image.load("../assets/Nobel_Prize.png"), (
+            int(self.height), int(self.width)
+        ))
+        self.hidden = False
+        self.time_held_for = -1
+
+    def in_prize(self, x, y):
+        return (x-self.x)**2 + (y-self.y)**2 <= (self.height**2 + self.width**2)*0.5
+
+    def draw(self, screen):
+        if not self.hidden:
+            screen.blit(self.image, (self.x, self.y))
+
+
 class Game:
     WINDOW_WIDTH = 1500
     WINDOW_HEIGHT = 750
     GROUND = WINDOW_HEIGHT
     DT = 0.01
-    SPEED_OF_LIGHT = 8
 
-    def __init__(self):
+    def __init__(self, c, is_last_level=False):
+        self.is_last_level = is_last_level
+        self.SPEED_OF_LIGHT = c  # 80 -> 8 -> 5.5
         pygame.init()
         pygame.font.init()
         pygame.display.set_caption("Relativity Man")
-        self.screen = pygame.display.set_mode((self.WINDOW_WIDTH, self.WINDOW_HEIGHT))
+        self.screen = pygame.display.set_mode((self.WINDOW_WIDTH, self.WINDOW_HEIGHT), pygame.FULLSCREEN)
 
         self.player = Player(150, Game.GROUND - 300)
-        self.platforms = (Platform(self.GROUND - 100, 100, 1600, 20),
-                          Platform(self.GROUND - 200, 200, 200, 20),
-                          Platform(self.GROUND - 500, 500, 200, 20),
-                          Platform(self.GROUND - 400, 300, 200, 20),
-                          Platform(self.GROUND - 300, 700, 200, 20),
+        thickness = 25
+        self.platforms = (Platform(self.GROUND - 100, 100, 1600, 2*thickness),
+                          Platform(self.GROUND - 200, 200,  200, thickness),
+                          Platform(self.GROUND - 500, 500,  200, thickness),
+                          Platform(self.GROUND - 400, 300,  200, thickness),
+                          Platform(self.GROUND - 300, 700,  200, thickness),
                           )
         self.clock_rel = Clock(50, 50, 200, 100, self.SPEED_OF_LIGHT)
         self.clock = Clock(150, 50, 200, 100, self.SPEED_OF_LIGHT)
         self.keys = {}  # Automatically initialized in handle user input.
 
+        self.ball = Ball(50, 50, 0)
+
     def main_loop(self):
         clock = pygame.time.Clock()
-        max_speed = 0
+
+        prize = Nobel_Prize(550, 100)
+        myfont = pygame.font.SysFont('Comic Sans MS', 30)
         while True:
-            self.clear_scene()
+            try:
+                self.clear_scene()
 
-            self.player.draw(self.screen)
-            for platform in self.platforms:
-                platform.draw(self.screen)
-            self.clock.draw(self.screen)
-            self.clock_rel.draw(self.screen)
-            clock_rel_copy = copy.deepcopy(self.clock_rel)
-            clock_rel_copy.x = self.player.x
-            clock_rel_copy.y = self.player.y - self.player.height - 50
-            clock_rel_copy.draw(self.screen)
+                prize.draw(self.screen)
 
-            speed = (self.player.vx ** 2 + self.player.vy ** 2) ** 0.5 / self.SPEED_OF_LIGHT * 100
-            myfont = pygame.font.SysFont('Comic Sans MS', 30)
-            textsurface = myfont.render('{:.2f}'.format(speed), False, (100, 100, 100))
-            self.screen.blit(textsurface, (500, 500))
+                if not prize.hidden:
+                    if prize.in_prize(self.player.x, self.player.y):
+                        prize.hidden = True
+                else:
+                    textsurface = myfont.render("Congratulations! You got a Nobel Prize!", False, (100, 100, 100))
+                    self.screen.blit(textsurface, (self.WINDOW_WIDTH / 2.0 - 200, 50))
+                    prize.time_held_for += 1
+                    if prize.time_held_for > 200 and not self.is_last_level:
+                        break
 
-            self.show_scene()
+                self.player.draw(self.screen)
+                for platform in self.platforms:
+                    platform.draw(self.screen)
+                self.clock.draw(self.screen)
+                self.clock_rel.draw(self.screen)
+
+                clock_rel_copy = copy.deepcopy(self.clock_rel)
+                clock_rel_copy.x = self.player.x
+                clock_rel_copy.y = self.player.y - self.player.height - 50
+                clock_rel_copy.draw(self.screen)
+
+                speed = (self.player.vx ** 2 + self.player.vy ** 2) ** 0.5 / self.SPEED_OF_LIGHT * 100
 
 
-            clock.tick(60)
-            for frames in range(300):
-                self.update_key_states()
-                self.handle_user_input()
+                textsurface = myfont.render('v  = {:.2f}% c'.format(speed), False, (100, 100, 100))
+                self.screen.blit(textsurface, (self.WINDOW_WIDTH - 200, 50))
 
-                self.player.update(self.DT)
-                self.player.handle_collisions(self.platforms)
-                self.clock.update(self.DT, 0, 0, self.SPEED_OF_LIGHT)
-                self.clock_rel.update(self.DT, self.player.vx, self.player.vy, self.SPEED_OF_LIGHT)
+                vx2_c2 = self.player.vx ** 2 / self.SPEED_OF_LIGHT ** 2
+                vy2_c2 = self.player.vy ** 2 / self.SPEED_OF_LIGHT ** 2
+                v2_c2 = vx2_c2 + vy2_c2
+                theta = atan2(self.player.vy, self.player.vx)
+                gamma = 1.0 / sqrt(1 - v2_c2)
+                lorentz_x = gamma ** 1 * cos(theta) ** 2 + gamma ** 3 * sin(theta) ** 2
+                lorentz_y = gamma ** 3 * cos(theta) ** 2 + gamma ** 1 * sin(theta) ** 2
 
-                if self.player.is_dead(self.GROUND):
-                    self.player = Player(150, Game.GROUND - 300)
 
+                textsurface = myfont.render('m_x = {:.2f}'.format(lorentz_x), False, (100, 100, 100))
+                self.screen.blit(textsurface, (self.WINDOW_WIDTH - 200, 100))
+
+                textsurface = myfont.render('m_y = {:.2f}'.format(lorentz_y), False, (100, 100, 100))
+                self.screen.blit(textsurface, (self.WINDOW_WIDTH - 200, 150))
+
+                textsurface = myfont.render('Walking Speed = {:.1f}%c'.format(self.player.walking_speed / self.SPEED_OF_LIGHT), False, (100, 100, 100))
+                self.screen.blit(textsurface, (300, 0))
+
+
+                self.show_scene()
+
+                clock.tick(60)
+                for frames in range(300):
+                    self.update_key_states()
+                    self.handle_user_input()
+
+                    self.player.update(self.DT, self.SPEED_OF_LIGHT)
+                    self.player.handle_collisions(self.platforms)
+                    self.clock.update(self.DT, 0, 0, self.SPEED_OF_LIGHT)
+                    self.clock_rel.update(self.DT, self.player.vx, self.player.vy, self.SPEED_OF_LIGHT)
+
+                    if self.player.is_dead(self.GROUND):
+                        self.player = Player(150, Game.GROUND - 300)
+            except ValueError:
+                self.player.x = 150
+                self.player.y = Game.GROUND - 300
+                self.player.vx = 0
+                self.player.vy = 0
+                print("Crashed")
     def update_key_states(self):
+        if using_joy_stick() and pygame.joystick.get_count():
+            joystick = pygame.joystick.Joystick(0)
+            joystick.init()
+            jump_button = joystick.get_button(0)
+            d_pressed = joystick.get_hat(0)[0] > 0
+            a_pressed = joystick.get_hat(0)[0] < 0
+
+            for char, key_object in self.keys.items():
+                if char == 'space':
+                    self.keys[char] = Key(key_object.py_key, jump_button)
+                if char == 'a':
+                    self.keys[char] = Key(key_object.py_key, a_pressed)
+                if char == 'd':
+                    self.keys[char] = Key(key_object.py_key, d_pressed)
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 pygame.quit()
@@ -92,13 +171,13 @@ class Game:
             https://www.pygame.org/docs/ref/key.html under the 'Common Name' column. """
         try:
             if self.keys['a'].state:
-                self.player.vx = -self.player.walking_speed * self.DT
+                self.player.fx = -(self.player.walking_speed + self.player.vx/self.DT) * self.player.mass
             if self.keys['d'].state:
-                self.player.vx = +self.player.walking_speed * self.DT
+                self.player.fx = -(-self.player.walking_speed + self.player.vx / self.DT) * self.player.mass
             if self.keys['space'].state:
                 if self.player.onGround:
                     # self.player.vy = -self.player.jumping_speed
-                    self.player.ay = 800 / self.player.mass
+                    self.player.fy = -self.player.jumping_speed / 0.01
                     self.keys['space'].state = False
             if self.keys['escape'].state:
                 pygame.quit()
