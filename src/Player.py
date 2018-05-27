@@ -15,7 +15,7 @@ class Player:
 
         self.bounciness = 0.2
         self.walking_speed = 550
-        self.jumping_speed = 5.50
+        self.jumping_speed = 5.00
 
         self.onGround = False
 
@@ -36,8 +36,8 @@ class Player:
 
         theta = atan2(self.vy, self.vx)
 
-        lorentz_x = gamma**1 * cos(theta)**2 + gamma**3 * sin(theta)**2
-        lorentz_y = gamma**3 * cos(theta)**2 + gamma**1 * sin(theta)**2
+        lorentz_y = gamma**1 * cos(theta)**2 + gamma**3 * sin(theta)**2
+        lorentz_x = gamma**3 * cos(theta)**2 + gamma**1 * sin(theta)**2
         self.vx += self.fx / (self.mass*lorentz_x) * dt
         self.vy += self.fy / (self.mass*lorentz_y) * dt
 
@@ -45,13 +45,13 @@ class Player:
         self.y += self.vy * dt
 
         self.fx = 0
-        self.fy = 0.1 * self.mass  # gravity
+        self.fy = 0.1 * self.mass  # *lorentz_y # gravity
 
-        drag = 0.01 if self.onGround else 0.05
+        drag = 0.01 if self.onGround else 0.10
         self.vx *= (1 - drag * dt)
         self.vy *= (1 - 0.01 * dt)
 
-        self.height =  self.proper_height / gamma_y
+        self.height = self.proper_height / gamma_y
         self.width = self.proper_width / gamma_x
 
 
