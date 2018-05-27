@@ -1,5 +1,5 @@
 def is_debugging():
-    return True
+    return False
 
 
 def using_joy_stick():
