@@ -31,18 +31,20 @@ def scores(time_string=''):
     pygame.display.set_caption("Relativity Man")
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.FULLSCREEN)
 
-    times = []
-    for line in open('../assets/scores.dat', 'r'):
-        if line.strip() == '':
-            continue
-        time_and_maybe_name = line.split(' ', 1)
-        time = float(time_and_maybe_name[0])
-        name = ' '
-        if len(time_and_maybe_name) > 1:
-            name = time_and_maybe_name[1].strip()
-        times.append((time, name))
-    times = sorted(times, key=lambda x: x[0])
-
+    def getTimes():
+        times = []
+        for line in open('../assets/scores.dat', 'r'):
+            if line.strip() == '':
+                continue
+            time_and_maybe_name = line.split(' ', 1)
+            time = float(time_and_maybe_name[0])
+            name = ' '
+            if len(time_and_maybe_name) > 1:
+                name = time_and_maybe_name[1].strip()
+            times.append((time, name))
+        times = sorted(times, key=lambda x: x[0])
+        return times
+    times = getTimes()
     name = " "
     finished_name = False
     while True:
@@ -63,18 +65,20 @@ def scores(time_string=''):
             textsurface = title_font.render("Name: {0}".format(name), False, (100, 100, 100))
             screen.blit(textsurface, (250, 250))
 
-        for i, time in enumerate(times):
+        for i, time in enumerate(getTimes()):
             textsurface = title_font.render(str(time[0]) + "s : " + str(time[1]), False, (100, 100, 100))
             screen.blit(textsurface, (850, 150 + 50*i))
 
         key_states = update_key_states()
-        if (not time_string) or finished_name:  # can only exit if just looking, or name is finished
+        if not time_string:  # can only exit if just looking, ...
             if key_states == 'Main Menu':
-                if time_string:
-                    f = open('../assets/scores.dat', 'a')
-                    f.write("{0:.3f}".format(time_string) + " " + name + '\n')
-                    f.close()
-                return key_states
+                return 'Main Menu'
+        if finished_name:  # or name is finished
+            if time_string:
+                f = open('../assets/scores.dat', 'a')
+                f.write("{0:.3f}".format(time_string) + " " + name + '\n')
+                f.close()
+            return 'Main Menu'
         if not finished_name and not any([key_states == s for s in [-1, -2, "Main Menu"]]):
             name += key_states if key_states != 'space' else ' '
         if key_states == -2:
