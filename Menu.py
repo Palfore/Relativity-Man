@@ -1,5 +1,5 @@
 import pygame
-from src.settings import using_joy_stick
+from settings import using_joy_stick
 
 WINDOW_WIDTH = 1500
 WINDOW_HEIGHT = 750
@@ -33,7 +33,7 @@ def scores(time_string=''):
 
     def getTimes():
         times = []
-        for line in open('../assets/scores.dat', 'r'):
+        for line in open('assets/scores.dat', 'r'):
             if line.strip() == '':
                 continue
             time_and_maybe_name = line.split(' ', 1)
@@ -75,7 +75,7 @@ def scores(time_string=''):
                 return 'Main Menu'
         if finished_name:  # or name is finished
             if time_string:
-                f = open('../assets/scores.dat', 'a')
+                f = open('assets/scores.dat', 'a')
                 f.write("{0:.3f}".format(time_string) + " " + name + '\n')
                 f.close()
             return 'Main Menu'
@@ -91,7 +91,7 @@ def instructions():
     def update_key_states():
         for e in pygame.event.get():
             if e.type == pygame.KEYDOWN:
-                    print(e.key)
+                    #print(e.key)
                     if e.key == 27:  # Esc
                         pygame.quit()
                         exit(0)
@@ -127,7 +127,7 @@ def instructions():
         screen.blit(textsurface, (200, 250))
 
         title_font = pygame.font.SysFont('Comic Sans MS', 25)
-        textsurface = title_font.render("You're time to complete the 3 levels will be recorded and shown in the High Scores.", False, (100, 100, 100))
+        textsurface = title_font.render("Your time to complete the 3 levels will be recorded and shown in the High Scores.", False, (100, 100, 100))
         screen.blit(textsurface, (200, 300))
 
         title_font = pygame.font.SysFont('Comic Sans MS', 25)
@@ -157,7 +157,7 @@ def menu():
     def update_key_states():
         for e in pygame.event.get():
             if e.type == pygame.KEYDOWN:
-                    print(e.key)
+                    #print(e.key)
                     if e.key == 27:  # Esc
                         pygame.quit()
                         exit(0)

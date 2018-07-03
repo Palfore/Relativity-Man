@@ -1,8 +1,8 @@
 import pygame
-from src.Player import Player
-from src.Platform import Platform
-from src.Clock import Clock, Ball
-from src.settings import using_joy_stick
+from Player import Player
+from Platform import Platform
+from Clock import Clock, Ball
+from settings import using_joy_stick
 import copy
 from math import atan2, cos, sin, sqrt
 
@@ -18,7 +18,7 @@ class Nobel_Prize:
         self.y = y
         self.height = 100
         self.width = 100
-        self.image = pygame.transform.scale(pygame.image.load("../assets/Nobel_Prize.png"), (
+        self.image = pygame.transform.scale(pygame.image.load("assets/Nobel_Prize.png"), (
             int(self.height), int(self.width)
         ))
         self.hidden = False
@@ -69,7 +69,7 @@ class Game:
         prize = Nobel_Prize(550, 100)
         myfont = pygame.font.SysFont('Comic Sans MS', 30)
         if not self.jump_sound:
-            self.jump_sound = pygame.mixer.Sound('../assets/jump.wav')
+            self.jump_sound = pygame.mixer.Sound('assets/jump.wav')
         while True:
             try:
                 self.clear_scene()
@@ -79,7 +79,7 @@ class Game:
                 if not prize.hidden:
                     if prize.in_prize(self.player.x, self.player.y):
                         prize.hidden = True
-                        prize_sound = pygame.mixer.Sound('../assets/powerup.wav')
+                        prize_sound = pygame.mixer.Sound('assets/powerup.wav')
                         prize_sound.play()
                 else:
                     textsurface = myfont.render("Congratulations! You got Einstein a Nobel Prize!", False, (100, 100, 100))
@@ -167,7 +167,7 @@ class Game:
                 self.player.y = Game.GROUND - 300
                 self.player.vx = 0
                 self.player.vy = 0
-                print("Crashed")
+                print("Crashed: [Slightly] Exceeded the speed of light (its a bug).")
 
     def update_key_states(self):
         if using_joy_stick() and pygame.joystick.get_count():

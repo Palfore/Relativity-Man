@@ -1,5 +1,5 @@
 import pygame
-import src.settings as settings
+import settings as settings
 
 
 class Platform:

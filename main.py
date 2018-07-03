@@ -1,5 +1,5 @@
-from src.Game import Game
-from src.Menu import menu, instructions, scores
+from Game import Game
+from Menu import menu, instructions, scores
 
 import time
 if __name__ == '__main__':

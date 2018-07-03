@@ -1,11 +1,11 @@
 import pygame
-import src.settings as settings
+import settings as settings
 from math import sqrt, atan2, sin ,cos
 
 
 class Player:
     def __init__(self, init_x, init_y):
-        self.image = pygame.image.load("../assets/einstein.png")
+        self.image = pygame.image.load("assets/einstein.png")
         self.proper_height = 150
         self.proper_width = 150
         self.mass = 1
